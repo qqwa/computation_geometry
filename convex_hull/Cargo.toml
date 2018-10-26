@@ -1,0 +1,8 @@
+[package]
+name = "convex_hull"
+version = "0.1.0"
+authors = ["Benjamin Bäumler <benjamin.baeumler@qqwa.de>"]
+edition = "2018"
+
+[dependencies]
+ggez = "0.4.4"
