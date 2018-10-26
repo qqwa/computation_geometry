@@ -1,28 +1,42 @@
+#![feature(box_syntax)]
+
 extern crate ggez;
 
 use ggez::*;
 use ggez::graphics::{DrawMode, Point2};
 
 struct MainState {
-    pos_x: f32,
+    points: Vec<Point2>,
+    point_color: graphics::Color,
+    poly_color: graphics::Color,
 }
 
 impl MainState {
     fn new(_ctx: &mut Context) -> GameResult<MainState> {
-        let s = MainState { pos_x: 0.0 };
+        let point_color = graphics::Color::from_rgb(255, 255, 255);
+        let poly_color = graphics::Color::from_rgb(200, 50, 50);
+        let mut s = MainState {points: Vec::new(), point_color, poly_color };
+        s.points.push(Point2::new(100.0, 100.0));
+        s.points.push(Point2::new(200.0, 150.0));
+        s.points.push(Point2::new(100.0, 200.0));
         Ok(s)
     }
 }
 
 impl event::EventHandler for MainState {
     fn update(&mut self, _ctx: &mut Context) -> GameResult<()> {
-        self.pos_x = self.pos_x % 800.0 + 1.0;
         Ok(())
     }
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
         graphics::clear(ctx);
-        graphics::circle(ctx, DrawMode::Fill, Point2::new(self.pos_x, 380.0), 100.0, 2.0)?;
+        graphics::set_color(ctx, self.point_color)?;
+        for point in &self.points {
+            graphics::circle(ctx, DrawMode::Fill, point.clone(), 2.5, 0.15)?;
+        }
+        graphics::set_color(ctx, self.poly_color)?;
+        graphics::polygon(ctx, DrawMode::Line(2.0), &self.points[..])?;
+
         graphics::present(ctx);
         Ok(())
     }
