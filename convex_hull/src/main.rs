@@ -1,6 +1,11 @@
 #![feature(box_syntax)]
+#![feature(vec_remove_item)]
 
 extern crate ggez;
+extern crate fern;
+extern crate chrono;
+#[macro_use]
+extern crate log;
 
 use ggez::*;
 use ggez::graphics::{DrawMode, Point2};
@@ -55,12 +60,36 @@ impl event::EventHandler for MainState {
         if button != MouseButton::Left {
             return;
         }
-        self.points.push(Point2::new(x as f32, y as f32));
+        let point = Point2::new(x as f32, y as f32);
+        if !self.points.contains(&point) {
+            debug!("Created Point: {}", point);
+            self.points.push(point);
+        } else {
+            debug!("Removed Point: {}", point);
+            self.points.remove_item(&point);
+        }
     }
 }
 
 
 fn main() {
+    fern::Dispatch::new()
+        .format(|out, message, record| {
+            out.finish(format_args!(
+                "[{}][{:<5}][{}] {}",
+                chrono::Local::now().format("%Y-%m-%d %H:%M:%S"),
+                record.level().to_string(),
+                record.target(),
+                message
+            ))
+        })
+        .level_for("gfx_device_gl", log::LevelFilter::Warn)
+        .level_for("ggez", log::LevelFilter::Warn)
+        .level(log::LevelFilter::Trace)
+        .chain(std::io::stdout())
+        .apply()
+        .unwrap();
+
     let c = conf::Conf::new();
     let ctx = &mut Context::load_from_conf("super_simple", "ggez", c).unwrap();
     let state = &mut MainState::new(ctx).unwrap();
