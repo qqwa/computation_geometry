@@ -41,12 +41,20 @@ fn left_turn(points: &[Point2]) -> bool {
 
 impl event::EventHandler for MainState {
     fn update(&mut self, _ctx: &mut Context) -> GameResult<()> {
+            
+        // // test points with multiple points that have the same x value 
+        // if self.points.len() == 0 {
+        //     self.points.extend(everything_is_convex());
+        //     self.dirty_flag = true;
+        // }
+
         if self.dirty_flag {
             self.dirty_flag = false;
             debug!("Recomputed convex hull:");
-            self.points.sort_by(|a, b| a[0].partial_cmp(&b[0]).unwrap());
+            self.points.sort_by(|a, b| a[0].partial_cmp(&b[0]).unwrap().then_with(|| a[1].partial_cmp(&b[1]).unwrap()));
             debug!("Left point: {}", self.points[0]);
             debug!("Right pont: {}", self.points[self.points.len()-1]);
+
 
             if self.points.len() < 3 {
                 return Ok(())
@@ -73,8 +81,6 @@ impl event::EventHandler for MainState {
             }
             lower.remove(0);
             lower.pop();
-            // debug!("{:#?}", lower);
-            // debug!("lower for first value: {:?}, len: {}", self.points[1..self.points.len()-1].iter().rev().nth(0), self.points[1..self.points.len()-2].len());
 
             self.polygon.truncate(0);
             self.polygon.append(&mut upper);
@@ -131,6 +137,17 @@ impl event::EventHandler for MainState {
     }
 }
 
+fn everything_is_convex() -> Vec<Point2> {
+    vec![Point2::new(200.0, 100.0), 
+         Point2::new(250.0, 100.0), 
+         Point2::new(300.0, 150.0),
+         Point2::new(250.0, 160.0),
+         Point2::new(250.0, 170.0),
+         Point2::new(250.0, 180.0),
+         Point2::new(250.0, 190.0),
+         Point2::new(250.0, 120.0),
+    ]
+}
 
 fn main() {
     fern::Dispatch::new()
