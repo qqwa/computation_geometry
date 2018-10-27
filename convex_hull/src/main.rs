@@ -65,7 +65,7 @@ impl event::EventHandler for MainState {
             let mut lower: Vec<Point2> = Vec::new();
             lower.extend_from_slice(&self.points[self.points.len()-2..]);
             lower.reverse();
-            for point in self.points[1..self.points.len()-2].iter().rev() {
+            for point in self.points[..self.points.len()-2].iter().rev() {
                 lower.push(point.clone());
                 while 2 < lower.len() && left_turn(&lower[lower.len()-3..]) {
                     lower.remove(lower.len()-2);
