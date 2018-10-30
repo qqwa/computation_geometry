@@ -58,44 +58,7 @@ impl event::EventHandler for MainState {
 
         if self.dirty_flag {
             self.dirty_flag = false;
-            debug!("Recomputed convex hull:");
-            self.points.sort_by(|a, b| {
-                a[0].partial_cmp(&b[0])
-                    .unwrap()
-                    .then_with(|| a[1].partial_cmp(&b[1]).unwrap())
-            });
-            debug!("Left point: {}", self.points[0]);
-            debug!("Right pont: {}", self.points[self.points.len() - 1]);
-
-            if self.points.len() < 3 {
-                return Ok(());
-            }
-
-            let mut upper = Vec::new();
-            upper.extend_from_slice(&self.points[..2]);
-
-            for point in &self.points[2..] {
-                upper.push(point.clone());
-                while 2 < upper.len() && left_turn(&upper[upper.len() - 3..]) {
-                    upper.remove(upper.len() - 2);
-                }
-            }
-
-            let mut lower: Vec<Point2> = Vec::new();
-            lower.extend_from_slice(&self.points[self.points.len() - 2..]);
-            lower.reverse();
-            for point in self.points[..self.points.len() - 2].iter().rev() {
-                lower.push(point.clone());
-                while 2 < lower.len() && left_turn(&lower[lower.len() - 3..]) {
-                    lower.remove(lower.len() - 2);
-                }
-            }
-            lower.remove(0);
-            lower.pop();
-
-            self.polygon.truncate(0);
-            self.polygon.append(&mut upper);
-            self.polygon.append(&mut lower);
+            self.polygon = grahams_scan(&self.points);
         }
         Ok(())
     }
@@ -157,6 +120,49 @@ fn everything_is_convex() -> Vec<Point2> {
         Point2::new(250.0, 190.0),
         Point2::new(250.0, 120.0),
     ]
+}
+
+fn grahams_scan(points: &[Point2]) -> Vec<Point2> {
+    debug!("Recomputed convex hull with graham's scan:");
+    if points.len() < 3 {
+        debug!("Less then 3 points can't do graham's scan");
+        return Vec::new();
+    }
+
+    let mut points = points.to_vec();
+    points.sort_by(|a, b| {
+        a[0].partial_cmp(&b[0])
+            .unwrap()
+            .then_with(|| a[1].partial_cmp(&b[1]).unwrap())
+    });
+    debug!("Left point: {}", points[0]);
+    debug!("Right pont: {}", points[points.len() - 1]);
+
+    let mut upper = Vec::new();
+    upper.extend_from_slice(&points[..2]);
+    for point in &points[2..] {
+        upper.push(point.clone());
+        while 2 < upper.len() && left_turn(&upper[upper.len() - 3..]) {
+            upper.remove(upper.len() - 2);
+        }
+    }
+
+    let mut lower: Vec<Point2> = Vec::new();
+    lower.extend_from_slice(&points[points.len() - 2..]);
+    lower.reverse();
+    for point in points[..points.len() - 2].iter().rev() {
+        lower.push(point.clone());
+        while 2 < lower.len() && left_turn(&lower[lower.len() - 3..]) {
+            lower.remove(lower.len() - 2);
+        }
+    }
+    lower.remove(0);
+    lower.pop();
+
+    let mut polygon = Vec::with_capacity(upper.len() + lower.len());
+    polygon.append(&mut upper);
+    polygon.append(&mut lower);
+    polygon
 }
 
 fn main() {
