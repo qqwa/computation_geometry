@@ -10,6 +10,7 @@ extern crate log;
 use ggez::event::MouseButton;
 use ggez::graphics::{DrawMode, Point2};
 use ggez::*;
+use ggez::nalgebra;
 
 struct MainState {
     points: Vec<Point2>,
@@ -44,8 +45,7 @@ fn left_turn(points: &[Point2]) -> bool {
     let a = Point2::new(points[1][0] - points[0][0], points[1][1] - points[0][1]);
     let b = Point2::new(points[2][0] - points[0][0], points[2][1] - points[0][1]);
 
-    let left = (a[0] * b[1] - b[0] * a[1]) < 0.0;
-    left
+    (a[0] * b[1] - b[0] * a[1]) > 0.0
 }
 
 impl event::EventHandler for MainState {
@@ -58,7 +58,8 @@ impl event::EventHandler for MainState {
 
         if self.dirty_flag {
             self.dirty_flag = false;
-            self.polygon = grahams_scan(&self.points);
+            // self.polygon = grahams_scan(&self.points);
+            self.polygon = jarvis_march(&self.points);
         }
         Ok(())
     }
@@ -129,15 +130,15 @@ fn grahams_scan(points: &[Point2]) -> Vec<Point2> {
         return Vec::new();
     }
 
+    // sort points lexicographically by x then y
     let mut points = points.to_vec();
     points.sort_by(|a, b| {
         a[0].partial_cmp(&b[0])
             .unwrap()
             .then_with(|| a[1].partial_cmp(&b[1]).unwrap())
     });
-    debug!("Left point: {}", points[0]);
-    debug!("Right pont: {}", points[points.len() - 1]);
 
+    // compute upper half
     let mut upper = Vec::new();
     upper.extend_from_slice(&points[..2]);
     for point in &points[2..] {
@@ -147,6 +148,7 @@ fn grahams_scan(points: &[Point2]) -> Vec<Point2> {
         }
     }
 
+    // computer lower half
     let mut lower: Vec<Point2> = Vec::new();
     lower.extend_from_slice(&points[points.len() - 2..]);
     lower.reverse();
@@ -156,6 +158,8 @@ fn grahams_scan(points: &[Point2]) -> Vec<Point2> {
             lower.remove(lower.len() - 2);
         }
     }
+
+    // combine upper and lower half
     lower.remove(0);
     lower.pop();
 
@@ -163,6 +167,58 @@ fn grahams_scan(points: &[Point2]) -> Vec<Point2> {
     polygon.append(&mut upper);
     polygon.append(&mut lower);
     polygon
+}
+
+fn jarvis_march(points: &[Point2]) -> Vec<Point2> {
+    debug!("Recomputed convex hull with jarvi's march:");
+
+    // sort points lexicographically by y then x
+    let mut points = points.to_vec();
+    points.sort_by(|a, b| {
+        a[1].partial_cmp(&b[1])
+            .unwrap()
+            .then_with(|| a[0].partial_cmp(&b[0]).unwrap())
+    });
+
+    let mut current_point = points[0];
+    let mut polygon = vec![current_point];
+
+    while {
+        current_point = smallest_angle_ccw(current_point, &points[..]);
+        polygon.push(current_point);
+        current_point != points[0]
+    } {}
+
+
+    polygon
+}
+
+fn smallest_angle_ccw(test_point: Point2, points: &[Point2]) -> Point2 {
+    for potential_point in points.iter().filter(|&x| !equal_points(x, &test_point)) {
+        let mut most_right = true;
+        let mut test_vec = vec![test_point, *potential_point, Point2::new(0.0, 0.0)];
+        for point in points.iter().filter(|&x| !(equal_points(x, &test_point) && equal_points(x, &potential_point))) {
+            test_vec[2] = *point;
+            if left_turn(&test_vec[..]) {
+                most_right = false;
+                break;
+            }
+        }
+        if most_right {
+            return *potential_point;
+        }
+    }
+    return test_point;
+}
+
+fn equal_points(a: &Point2, b: &Point2) -> bool {
+    if a[0].partial_cmp(&b[0]).unwrap() != std::cmp::Ordering::Equal {
+        return false;
+    }
+    if a[1].partial_cmp(&b[1]).unwrap() != std::cmp::Ordering::Equal {
+        return false;
+    }
+    true
 }
 
 fn main() {
@@ -182,6 +238,9 @@ fn main() {
         .chain(std::io::stdout())
         .apply()
         .unwrap();
+
+    let should_be_left = vec![Point2::new(0.0, 0.0), Point2::new(1.0, 0.0), Point2::new(1.0, 1.0)];
+    debug!("left_turn(should_be_left): {}", left_turn(&should_be_left[..]));
 
     let c = conf::Conf::new();
     let ctx = &mut Context::load_from_conf("super_simple", "ggez", c).unwrap();
