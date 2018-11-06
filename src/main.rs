@@ -13,6 +13,7 @@ use ggez::*;
 mod point_state;
 mod line_state;
 mod convex_hull;
+mod intersection;
 mod math;
 
 fn everything_is_convex() -> Vec<Point2> {

@@ -2,6 +2,8 @@ use ggez::event::MouseButton;
 use ggez::graphics::{DrawMode, Point2};
 use ggez::*;
 
+use crate::intersection;
+
 pub struct LineState {
     lines: Vec<(Point2, Point2)>,
     intersection: Vec<(Point2, Point2)>,
@@ -36,6 +38,7 @@ impl event::EventHandler for LineState {
         if self.dirty_flag {
             self.dirty_flag = false;
             // TODO: Do line scan
+            self.intersection = intersection::iso_scan_line(&self.lines[..]);
         }
         Ok(())
     }
