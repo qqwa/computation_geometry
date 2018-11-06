@@ -50,23 +50,21 @@ pub fn grahams_scan(points: &[Point2]) -> Vec<Point2> {
 pub fn jarvis_march(points: &[Point2]) -> Vec<Point2> {
     debug!("Recomputed convex hull with jarvi's march:");
 
-    // sort points lexicographically by y then x
-    let mut points = points.to_vec();
-    points.sort_by(|a, b| {
-        a[1].partial_cmp(&b[1])
-            .unwrap()
-            .then_with(|| a[0].partial_cmp(&b[0]).unwrap())
-    });
+    let points = points.to_vec();
 
-    let mut current_point = points[0];
+    let smallest_point = *points.iter().fold(None, |min, a| match min {
+        None => Some(a),
+        Some(b) => Some(if a.y < b.y { a } else { b })
+    }).unwrap();
+    let mut current_point = smallest_point;
     let mut polygon = vec![current_point];
 
     while {
+        debug!("current_point: {}", current_point);
         current_point = smallest_angle_ccw(current_point, &points[..]);
         polygon.push(current_point);
-        current_point != points[0]
+        current_point != smallest_point
     } {}
-
 
     polygon
 }
