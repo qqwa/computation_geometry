@@ -18,9 +18,11 @@ impl MenuState {
     pub fn new() -> Self {
         let color = graphics::Color::from_rgb(255, 255, 255);
         let color_selected = graphics::Color::from_rgb(255, 255, 0);
-        let scenes = vec!["graham's scan".to_string(),
-        "jarvi's march".to_string(),
-        "iso scan line".to_string()];
+        let scenes = vec![
+            "graham's scan".to_string(),
+            "jarvi's march".to_string(),
+            "iso scan line".to_string(),
+        ];
         MenuState {
             switch: false,
             scenes,
@@ -38,8 +40,14 @@ impl Scene<SharedState, Event> for MenuState {
             self.switch = false;
             debug!("Switch to {}", self.scenes[self.selected]);
             match self.scenes[self.selected].as_str() {
-                "graham's scan" => SceneSwitch::Push(box super::point_state::PointState::new("graham's scan" , convex_hull::grahams_scan)),
-                "jarvi's march" => SceneSwitch::Push(box super::point_state::PointState::new("graham's scan" , convex_hull::jarvis_march)),
+                "graham's scan" => SceneSwitch::Push(box super::point_state::PointState::new(
+                    "graham's scan",
+                    convex_hull::grahams_scan,
+                )),
+                "jarvi's march" => SceneSwitch::Push(box super::point_state::PointState::new(
+                    "graham's scan",
+                    convex_hull::jarvis_march,
+                )),
                 "iso scan line" => SceneSwitch::Push(box super::line_state::LineState::new()),
                 _ => SceneSwitch::None,
             }
@@ -57,7 +65,15 @@ impl Scene<SharedState, Event> for MenuState {
                 graphics::set_color(ctx, self.color)?;
             }
             let text = graphics::Text::new(ctx, scene, &self.font)?;
-            graphics::draw(ctx, &text, graphics::Point2::new(ctx.conf.window_mode.width as f32 / 2.0 - text.width() as f32 / 2.0, 100.0 + i as f32 * 50.0), 0.0)?;
+            graphics::draw(
+                ctx,
+                &text,
+                graphics::Point2::new(
+                    ctx.conf.window_mode.width as f32 / 2.0 - text.width() as f32 / 2.0,
+                    100.0 + i as f32 * 50.0,
+                ),
+                0.0,
+            )?;
         }
 
         graphics::present(ctx);
@@ -68,24 +84,27 @@ impl Scene<SharedState, Event> for MenuState {
             Event::Return => self.switch = true,
             Event::ArrowUp => {
                 if 0 == self.selected {
-                    self.selected = self.scenes.len()-1;
+                    self.selected = self.scenes.len() - 1;
                 } else {
                     self.selected -= 1;
                 }
             }
             Event::ArrowDown => {
-                if self.selected+1 == self.scenes.len() {
+                if self.selected + 1 == self.scenes.len() {
                     self.selected = 0;
                 } else {
                     self.selected += 1;
                 }
             }
-            _ => {},
+            _ => {}
         }
     }
-    fn name(&self) -> &str { "MenuState" }
-    fn draw_previous(&self) -> bool { false }
+    fn name(&self) -> &str {
+        "MenuState"
+    }
+    fn draw_previous(&self) -> bool {
+        false
+    }
 }
 
 // impl Scene for other game states here
-

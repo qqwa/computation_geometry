@@ -58,4 +58,3 @@ fn main() {
     let state = &mut states::MainState::new(ctx, menu);
     event::run(ctx, state).unwrap();
 }
-

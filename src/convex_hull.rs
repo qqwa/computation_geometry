@@ -1,5 +1,5 @@
-use ggez::graphics::Point2;
 use crate::math::*;
+use ggez::graphics::Point2;
 
 pub fn grahams_scan(points: &[Point2]) -> Vec<Point2> {
     debug!("Recomputed convex hull with graham's scan:");
@@ -52,10 +52,13 @@ pub fn jarvis_march(points: &[Point2]) -> Vec<Point2> {
 
     let points = points.to_vec();
 
-    let smallest_point = *points.iter().fold(None, |min, a| match min {
-        None => Some(a),
-        Some(b) => Some(if a.y < b.y { a } else { b })
-    }).unwrap();
+    let smallest_point = *points
+        .iter()
+        .fold(None, |min, a| match min {
+            None => Some(a),
+            Some(b) => Some(if a.y < b.y { a } else { b }),
+        })
+        .unwrap();
     let mut current_point = smallest_point;
     let mut polygon = vec![current_point];
 

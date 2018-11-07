@@ -42,7 +42,7 @@ impl Scene<SharedState, Event> for LineState {
         }
 
         if self.close {
-            SceneSwitch::Pop            
+            SceneSwitch::Pop
         } else {
             SceneSwitch::None
         }
@@ -61,7 +61,7 @@ impl Scene<SharedState, Event> for LineState {
             graphics::circle(ctx, DrawMode::Fill, p2.clone(), 2.5, 0.15)?;
             graphics::line(ctx, &vec![*p1, *p2][..], 1.0)?;
         }
-        
+
         graphics::set_color(ctx, self.intersection_color)?;
         for (p1, p2) in &self.intersection {
             graphics::circle(ctx, DrawMode::Fill, p1.clone(), 2.5, 0.15)?;
@@ -73,7 +73,7 @@ impl Scene<SharedState, Event> for LineState {
         Ok(())
     }
     fn input(&mut self, state: &mut SharedState, event: Event, started: bool) {
-        if let Event::LeftMouseButton{ x, y } = event {
+        if let Event::LeftMouseButton { x, y } = event {
             let point = Point2::new(x as f32, y as f32);
 
             if self.point_of_line.is_none() {
@@ -113,13 +113,16 @@ impl Scene<SharedState, Event> for LineState {
             self.close = true;
         }
     }
-    fn name(&self) -> &str { "iso scan line" }
-    fn draw_previous(&self) -> bool { false }
+    fn name(&self) -> &str {
+        "iso scan line"
+    }
+    fn draw_previous(&self) -> bool {
+        false
+    }
 }
 
 impl event::EventHandler for LineState {
     fn update(&mut self, _ctx: &mut Context) -> GameResult<()> {
-
         if self.dirty_flag {
             self.dirty_flag = false;
             // TODO: Do line scan
@@ -142,7 +145,7 @@ impl event::EventHandler for LineState {
             graphics::circle(ctx, DrawMode::Fill, p2.clone(), 2.5, 0.15)?;
             graphics::line(ctx, &vec![*p1, *p2][..], 1.0)?;
         }
-        
+
         graphics::set_color(ctx, self.intersection_color)?;
         for (p1, p2) in &self.intersection {
             graphics::circle(ctx, DrawMode::Fill, p1.clone(), 2.5, 0.15)?;
@@ -193,4 +196,3 @@ impl event::EventHandler for LineState {
         }
     }
 }
-

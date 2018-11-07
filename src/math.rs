@@ -17,7 +17,10 @@ pub fn smallest_angle_ccw(test_point: Point2, points: &[Point2]) -> Point2 {
     for potential_point in points.iter().filter(|&x| !equal_points(x, &test_point)) {
         let mut most_right = true;
         let mut test_vec = vec![test_point, *potential_point, Point2::new(0.0, 0.0)];
-        for point in points.iter().filter(|&x| !(equal_points(x, &test_point) && equal_points(x, &potential_point))) {
+        for point in points
+            .iter()
+            .filter(|&x| !(equal_points(x, &test_point) && equal_points(x, &potential_point)))
+        {
             test_vec[2] = *point;
             if left_turn(&test_vec[..]) {
                 most_right = false;
@@ -48,13 +51,25 @@ mod tests {
     #[test]
     fn left_turn() {
         use super::left_turn;
-        let is_left = vec![Point2::new(0.0, 0.0), Point2::new(1.0, 0.0), Point2::new(1.0, 1.0)];
+        let is_left = vec![
+            Point2::new(0.0, 0.0),
+            Point2::new(1.0, 0.0),
+            Point2::new(1.0, 1.0),
+        ];
         assert_eq!(left_turn(&is_left[..]), true);
 
-        let straight = vec![Point2::new(0.0, 0.0), Point2::new(1.0, 0.0), Point2::new(2.0, 0.0)];
+        let straight = vec![
+            Point2::new(0.0, 0.0),
+            Point2::new(1.0, 0.0),
+            Point2::new(2.0, 0.0),
+        ];
         assert_eq!(left_turn(&straight[..]), false);
 
-        let is_right = vec![Point2::new(0.0, 0.0), Point2::new(1.0, 1.0), Point2::new(2.0, 0.0)];
+        let is_right = vec![
+            Point2::new(0.0, 0.0),
+            Point2::new(1.0, 1.0),
+            Point2::new(2.0, 0.0),
+        ];
         assert_eq!(left_turn(&is_right[..]), false);
     }
 }

@@ -62,7 +62,7 @@ impl Scene<SharedState, Event> for PointState {
         Ok(())
     }
     fn input(&mut self, state: &mut SharedState, event: Event, started: bool) {
-        if let Event::LeftMouseButton{ x, y } = event {
+        if let Event::LeftMouseButton { x, y } = event {
             let point = Point2::new(x as f32, y as f32);
             if !self.points.contains(&point) {
                 debug!("Created Point: {}", point);
@@ -78,8 +78,12 @@ impl Scene<SharedState, Event> for PointState {
             self.close = true;
         }
     }
-    fn name(&self) -> &str { &self.name }
-    fn draw_previous(&self) -> bool { false }
+    fn name(&self) -> &str {
+        &self.name
+    }
+    fn draw_previous(&self) -> bool {
+        false
+    }
 }
 
 impl event::EventHandler for PointState {

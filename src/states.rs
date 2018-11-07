@@ -1,18 +1,15 @@
+use ggez::event::{Keycode, Mod, MouseButton};
 use ggez::*;
 use ggez_goodies::scene::*;
-use ggez::event::{MouseButton, Keycode, Mod};
 
+pub mod line_state;
 pub mod menu_state;
 pub mod point_state;
-pub mod line_state;
 
 pub struct SharedState();
 
 pub enum Event {
-    LeftMouseButton { 
-        x: i32,
-        y: i32,
-    },
+    LeftMouseButton { x: i32, y: i32 },
     RightMouseButton,
     ArrowDown,
     ArrowUp,
@@ -27,11 +24,9 @@ pub struct MainState {
 
 impl MainState {
     pub fn new(ctx: &mut ggez::Context, scene: Box<Scene<SharedState, Event>>) -> Self {
-        let mut scenes = SceneStack::new(ctx, SharedState{});
+        let mut scenes = SceneStack::new(ctx, SharedState {});
         scenes.push(scene);
-        MainState {
-            scenes,
-        }
+        MainState { scenes }
     }
 }
 
@@ -52,7 +47,7 @@ impl event::EventHandler for MainState {
         };
         self.scenes.input(event, true);
     }
-    fn key_up_event( &mut self, _ctx: &mut Context, keycode: Keycode, keymod: Mod, repeat: bool) {
+    fn key_up_event(&mut self, _ctx: &mut Context, keycode: Keycode, keymod: Mod, repeat: bool) {
         let event = if !repeat {
             match keycode {
                 Keycode::Up => Event::ArrowUp,
@@ -75,5 +70,4 @@ impl event::EventHandler for MainState {
             return true;
         }
     }
-    
 }
