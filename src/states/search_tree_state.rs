@@ -12,6 +12,7 @@ pub struct SearchTreeState {
     query_color: graphics::Color,
     dirty_flag: bool,
     point_mode: bool,
+    query_started: bool,
     close: bool,
     name: String,
 }
@@ -19,7 +20,7 @@ pub struct SearchTreeState {
 impl SearchTreeState {
     pub fn new(name: &str) -> Self {
         let point_color = graphics::Color::from_rgb(255, 255, 255);
-        let query_color = graphics::Color::from_rgb(200, 50, 50);
+        let query_color = graphics::Color::from_rgb(50, 50, 250);
         SearchTreeState {
             points: Vec::new(),
             query_points: Vec::new(),
@@ -28,6 +29,7 @@ impl SearchTreeState {
             query_color,
             dirty_flag: false,
             point_mode: true,
+            query_started: false,
             close: false,
             name: name.to_string(),
         }
@@ -76,6 +78,12 @@ impl Scene<SharedState, Event> for SearchTreeState {
             graphics::circle(ctx, DrawMode::Fill, point.clone(), 2.5, 0.15)?;
         }
 
+        graphics::set_color(ctx, self.query_color)?;
+        if let (Some(p1), Some(p2)) = self.query {
+            let rect = graphics::Rect::new(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
+            graphics::rectangle(ctx, DrawMode::Line(1.0), rect)?;
+        }
+
         graphics::present(ctx);
         Ok(())
     }
@@ -92,9 +100,27 @@ impl Scene<SharedState, Event> for SearchTreeState {
                 }
             }
         } else {
-            if let Event::LeftMouseButton { x, y } = event {}
+            if let Event::LeftMouseButton { x, y } = event {
+                let point = Point2::new(x as f32, y as f32);
+                if self.query_started {
+                    self.query.1 = Some(point);
+                    self.query_started = false;
+                } else {
+                    self.query = (Some(point), None);
+                    self.query_started = true;
+                }
+            }
+            if let Event::RightMouseButton { x, y } = event {
+                let point = Point2::new(x as f32, y as f32);
+                self.query = (None, None);
+                self.query_started = false;
+            }
             if let Event::MouseMove { x, y } = event {
-                debug!("Mouse move: {} {}", x, y);
+                let point = Point2::new(x as f32, y as f32);
+                if self.query_started {
+                    self.query.1 = Some(point);
+                    debug!("Mouse move: {} {}", x, y);
+                }
             }
         }
         if let Event::Mode = event {

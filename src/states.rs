@@ -13,7 +13,7 @@ pub struct SharedState();
 pub enum Event {
     LeftMouseButton { x: i32, y: i32 },
     MouseMove { x: i32, y: i32 },
-    RightMouseButton,
+    RightMouseButton { x: i32, y: i32},
     ArrowDown,
     ArrowUp,
     Return,
@@ -46,7 +46,7 @@ impl event::EventHandler for MainState {
     fn mouse_button_up_event(&mut self, _ctx: &mut Context, button: MouseButton, x: i32, y: i32) {
         let event = match button {
             MouseButton::Left => Event::LeftMouseButton { x, y },
-            MouseButton::Right => Event::RightMouseButton,
+            MouseButton::Right => Event::RightMouseButton { x, y},
             _ => Event::Ignore,
         };
         if event != Event::Ignore {
