@@ -1,20 +1,24 @@
-use ggez::event::{Keycode, Mod, MouseButton};
+use ggez::event::{Keycode, Mod, MouseButton, MouseState};
 use ggez::*;
 use ggez_goodies::scene::*;
 
 pub mod line_state;
 pub mod menu_state;
 pub mod point_state;
+pub mod search_tree_state;
 
 pub struct SharedState();
 
+#[derive(PartialEq)]
 pub enum Event {
     LeftMouseButton { x: i32, y: i32 },
+    MouseMove { x: i32, y: i32 },
     RightMouseButton,
     ArrowDown,
     ArrowUp,
     Return,
     Esc,
+    Mode,
     Ignore,
 }
 
@@ -45,7 +49,9 @@ impl event::EventHandler for MainState {
             MouseButton::Right => Event::RightMouseButton,
             _ => Event::Ignore,
         };
-        self.scenes.input(event, true);
+        if event != Event::Ignore {
+            self.scenes.input(event, true);
+        }
     }
     fn key_up_event(&mut self, _ctx: &mut Context, keycode: Keycode, keymod: Mod, repeat: bool) {
         let event = if !repeat {
@@ -54,11 +60,26 @@ impl event::EventHandler for MainState {
                 Keycode::Down => Event::ArrowDown,
                 Keycode::Return => Event::Return,
                 Keycode::Escape => Event::Esc,
+                Keycode::M => Event::Mode,
                 _ => Event::Ignore,
             }
         } else {
             Event::Ignore
         };
+        if event != Event::Ignore {
+            self.scenes.input(event, true);
+        }
+    }
+    fn mouse_motion_event(
+        &mut self,
+        _ctx: &mut Context,
+        _state: MouseState,
+        x: i32,
+        y: i32,
+        _xrel: i32,
+        _yrel: i32,
+    ) {
+        let event = Event::MouseMove { x, y };
         self.scenes.input(event, true);
     }
 

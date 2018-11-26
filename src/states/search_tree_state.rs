@@ -1,0 +1,113 @@
+use ggez::graphics::{DrawMode, Point2};
+use ggez::*;
+
+use super::*;
+
+#[derive(Clone)]
+pub struct SearchTreeState {
+    points: Vec<Point2>,
+    query_points: Vec<Point2>,
+    query: (Option<Point2>, Option<Point2>),
+    point_color: graphics::Color,
+    query_color: graphics::Color,
+    dirty_flag: bool,
+    point_mode: bool,
+    close: bool,
+    name: String,
+}
+
+impl SearchTreeState {
+    pub fn new(name: &str) -> Self {
+        let point_color = graphics::Color::from_rgb(255, 255, 255);
+        let query_color = graphics::Color::from_rgb(200, 50, 50);
+        SearchTreeState {
+            points: Vec::new(),
+            query_points: Vec::new(),
+            query: (None, None),
+            point_color,
+            query_color,
+            dirty_flag: false,
+            point_mode: true,
+            close: false,
+            name: name.to_string(),
+        }
+    }
+}
+
+impl Scene<SharedState, Event> for SearchTreeState {
+    fn update(&mut self, _state: &mut SharedState) -> SceneSwitch<SharedState, Event> {
+        if self.dirty_flag {
+            self.dirty_flag = false;
+            // TODO: run algo
+        }
+        if self.close {
+            debug!("popped");
+            SceneSwitch::Pop
+        } else {
+            SceneSwitch::None
+        }
+    }
+    fn draw(&mut self, state: &mut SharedState, ctx: &mut ggez::Context) -> ggez::GameResult<()> {
+        graphics::clear(ctx);
+
+        let font = graphics::Font::default_font().unwrap();
+
+        let color_text = graphics::Color::from_rgb(255, 255, 0);
+        graphics::set_color(ctx, color_text)?;
+        let text_str = if self.point_mode {
+            "point mode"
+        } else {
+            "query mode"
+        };
+
+        let text = graphics::Text::new(ctx, "press m to change mode", &font)?;
+        graphics::draw(ctx, &text, graphics::Point2::new(10.0, 10.0), 0.0)?;
+
+        let text = graphics::Text::new(ctx, text_str, &font)?;
+        graphics::draw(ctx, &text, graphics::Point2::new(10.0, 30.0), 0.0)?;
+
+        graphics::set_color(ctx, self.point_color)?;
+        for point in &self.points {
+            graphics::circle(ctx, DrawMode::Fill, point.clone(), 2.5, 0.15)?;
+        }
+
+        graphics::set_color(ctx, self.query_color)?;
+        for point in &self.query_points {
+            graphics::circle(ctx, DrawMode::Fill, point.clone(), 2.5, 0.15)?;
+        }
+
+        graphics::present(ctx);
+        Ok(())
+    }
+    fn input(&mut self, state: &mut SharedState, event: Event, started: bool) {
+        if self.point_mode {
+            if let Event::LeftMouseButton { x, y } = event {
+                let point = Point2::new(x as f32, y as f32);
+                if !self.points.contains(&point) {
+                    debug!("Created Point: {}", point);
+                    self.points.push(point);
+                } else {
+                    debug!("Removed Point: {}", point);
+                    self.points.remove_item(&point);
+                }
+            }
+        } else {
+            if let Event::LeftMouseButton { x, y } = event {}
+            if let Event::MouseMove { x, y } = event {
+                debug!("Mouse move: {} {}", x, y);
+            }
+        }
+        if let Event::Mode = event {
+            self.point_mode = !self.point_mode;
+        }
+        if let Event::Esc = event {
+            self.close = true;
+        }
+    }
+    fn name(&self) -> &str {
+        &self.name
+    }
+    fn draw_previous(&self) -> bool {
+        false
+    }
+}

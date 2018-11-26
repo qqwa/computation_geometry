@@ -77,6 +77,7 @@ struct Segment {
     id: usize,
 }
 
+#[derive(Debug)]
 struct Key(f32);
 
 impl Eq for Key {}
@@ -99,10 +100,11 @@ impl PartialOrd for Key {
     }
 }
 
-pub fn iso_scan_line(lines: &[(Point2, Point2)]) -> Vec<(Point2, Point2)> {
+pub fn iso_scan_line(lines: &[(Point2, Point2)]) -> (Vec<(Point2, Point2)>, Vec<Point2>) {
     debug!("iso_scan_line");
     let mut events = BinaryHeap::new();
     let mut intersecting_lines = BTreeMap::new();
+    let mut intersection_points = Vec::new();
 
     for (id, line) in lines.iter().enumerate() {
         let es = Event::from_line((line.0, line.1), id);
@@ -132,6 +134,7 @@ pub fn iso_scan_line(lines: &[(Point2, Point2)]) -> Vec<(Point2, Point2)> {
                 let p2 = lines[*id].1;
                 scan_line.get(&Key(p1.y));
                 for segment in scan_line.range(Key(p1.y.min(p2.y))..Key(p1.y.max(p2.y))) {
+                    intersection_points.push(Point2::new(p1.x, segment.1.p1.y));
                     intersecting_lines.insert(*id, (p1, p2));
                     intersecting_lines.insert(segment.1.id, (segment.1.p1, segment.1.p2));
                 }
@@ -139,7 +142,10 @@ pub fn iso_scan_line(lines: &[(Point2, Point2)]) -> Vec<(Point2, Point2)> {
         }
     }
 
-    intersecting_lines.values().cloned().collect()
+    (
+        intersecting_lines.values().cloned().collect(),
+        intersection_points,
+    )
 }
 
 fn line_is_horizontal(points: (Point2, Point2)) -> bool {

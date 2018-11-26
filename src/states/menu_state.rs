@@ -12,6 +12,7 @@ pub struct MenuState {
     font: graphics::Font,
     color: graphics::Color,
     color_selected: graphics::Color,
+    quick_start: bool,
 }
 
 impl MenuState {
@@ -22,6 +23,7 @@ impl MenuState {
             "graham's scan".to_string(),
             "jarvi's march".to_string(),
             "iso scan line".to_string(),
+            "2d-tree".to_string(),
         ];
         MenuState {
             switch: false,
@@ -30,14 +32,24 @@ impl MenuState {
             font: graphics::Font::default_font().unwrap(),
             color,
             color_selected,
+            quick_start: false,
+        }
+    }
+
+    pub fn quick_start(scene: usize) -> Self {
+        MenuState {
+            selected: scene,
+            quick_start: true,
+            ..Self::new()
         }
     }
 }
 
 impl Scene<SharedState, Event> for MenuState {
     fn update(&mut self, state: &mut SharedState) -> SceneSwitch<SharedState, Event> {
-        if self.switch {
+        if self.switch || self.quick_start {
             self.switch = false;
+            self.quick_start = false;
             debug!("Switch to {}", self.scenes[self.selected]);
             match self.scenes[self.selected].as_str() {
                 "graham's scan" => SceneSwitch::Push(box super::point_state::PointState::new(
@@ -49,6 +61,9 @@ impl Scene<SharedState, Event> for MenuState {
                     convex_hull::jarvis_march,
                 )),
                 "iso scan line" => SceneSwitch::Push(box super::line_state::LineState::new()),
+                "2d-tree" => SceneSwitch::Push(box super::search_tree_state::SearchTreeState::new(
+                    "2d-tree",
+                )),
                 _ => SceneSwitch::None,
             }
         } else {
