@@ -13,6 +13,7 @@ use ggez::*;
 // mod point_state;
 mod convex_hull;
 mod intersection;
+mod kd_tree;
 mod math;
 mod states;
 

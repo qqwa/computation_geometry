@@ -1,6 +1,8 @@
 use ggez::graphics::{DrawMode, Point2};
 use ggez::*;
 
+use crate::kd_tree;
+
 use super::*;
 
 #[derive(Clone)]
@@ -10,10 +12,12 @@ pub struct SearchTreeState {
     query: (Option<Point2>, Option<Point2>),
     point_color: graphics::Color,
     query_color: graphics::Color,
-    dirty_flag: bool,
+    dirty_flag_tree: bool,
+    dirty_flag_search: bool,
     point_mode: bool,
     query_started: bool,
     close: bool,
+    tree: Option<kd_tree::KdTree>,
     name: String,
 }
 
@@ -27,10 +31,12 @@ impl SearchTreeState {
             query: (None, None),
             point_color,
             query_color,
-            dirty_flag: false,
+            dirty_flag_tree: false,
+            dirty_flag_search: false,
             point_mode: true,
             query_started: false,
             close: false,
+            tree: None,
             name: name.to_string(),
         }
     }
@@ -38,10 +44,16 @@ impl SearchTreeState {
 
 impl Scene<SharedState, Event> for SearchTreeState {
     fn update(&mut self, _state: &mut SharedState) -> SceneSwitch<SharedState, Event> {
-        if self.dirty_flag {
-            self.dirty_flag = false;
-            // TODO: run algo
+        // recalc tree
+        if self.dirty_flag_tree {
+            self.dirty_flag_tree = false;
+            let points: Vec<(f32, f32)> = self.points.iter().map(|x| (x[0], x[1])).collect();
+            self.tree = Some(kd_tree::KdTree::new(&points[..]));
+            println!("{:#?}", self.tree.take().unwrap());
         }
+        // recalc search result
+        // TODO...
+
         if self.close {
             debug!("popped");
             SceneSwitch::Pop
@@ -91,6 +103,7 @@ impl Scene<SharedState, Event> for SearchTreeState {
         if self.point_mode {
             if let Event::LeftMouseButton { x, y } = event {
                 let point = Point2::new(x as f32, y as f32);
+                self.dirty_flag_tree = true;
                 if !self.points.contains(&point) {
                     debug!("Created Point: {}", point);
                     self.points.push(point);
@@ -102,6 +115,7 @@ impl Scene<SharedState, Event> for SearchTreeState {
         } else {
             if let Event::LeftMouseButton { x, y } = event {
                 let point = Point2::new(x as f32, y as f32);
+                self.dirty_flag_search = true;
                 if self.query_started {
                     self.query.1 = Some(point);
                     self.query_started = false;
@@ -112,11 +126,13 @@ impl Scene<SharedState, Event> for SearchTreeState {
             }
             if let Event::RightMouseButton { x, y } = event {
                 let point = Point2::new(x as f32, y as f32);
+                self.dirty_flag_search = true;
                 self.query = (None, None);
                 self.query_started = false;
             }
             if let Event::MouseMove { x, y } = event {
                 let point = Point2::new(x as f32, y as f32);
+                self.dirty_flag_search = true;
                 if self.query_started {
                     self.query.1 = Some(point);
                     debug!("Mouse move: {} {}", x, y);
