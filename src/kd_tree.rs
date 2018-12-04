@@ -17,10 +17,12 @@ impl KdTree {
         let mut pre_sorted_x: Vec<&(f32, f32)> = points.iter().map(|p| p).collect();
         pre_sorted_x.sort_by(|a, b| {
             a.0.partial_cmp(&b.0).unwrap()
+                .then_with(|| a.1.partial_cmp(&b.1).unwrap())
         });
         let mut pre_sorted_y: Vec<&(f32, f32)> = points.iter().map(|p| p).collect();
         pre_sorted_y.sort_by(|a, b| {
             a.1.partial_cmp(&b.1).unwrap()
+                .then_with(|| a.0.partial_cmp(&b.0).unwrap())
         });
 
         let node = Self::construct_balanced_2d_tree(&pre_sorted_x[..], &pre_sorted_y[..], orientation_even);
