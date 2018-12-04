@@ -117,7 +117,7 @@ impl Scene<SharedState, Event> for LineState {
             }
         }
 
-        if let Event::RightMouseButton {..} = event {
+        if let Event::RightMouseButton { .. } = event {
             self.point_of_line = None;
         }
 

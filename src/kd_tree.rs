@@ -1,4 +1,3 @@
-
 #[derive(Clone, Debug)]
 pub struct KdTree(pub Box<Node>);
 
@@ -15,20 +14,30 @@ impl KdTree {
         // sorted lists of references/pointers to points
         let mut pre_sorted_x: Vec<&(f32, f32)> = points.iter().map(|p| p).collect();
         pre_sorted_x.sort_by(|a, b| {
-            a.0.partial_cmp(&b.0).unwrap()
+            a.0.partial_cmp(&b.0)
+                .unwrap()
                 .then_with(|| a.1.partial_cmp(&b.1).unwrap())
         });
         let mut pre_sorted_y: Vec<&(f32, f32)> = points.iter().map(|p| p).collect();
         pre_sorted_y.sort_by(|a, b| {
-            a.1.partial_cmp(&b.1).unwrap()
+            a.1.partial_cmp(&b.1)
+                .unwrap()
                 .then_with(|| a.0.partial_cmp(&b.0).unwrap())
         });
 
-        let node = Self::construct_balanced_2d_tree(&pre_sorted_x[..], &pre_sorted_y[..], orientation_even);
+        let node = Self::construct_balanced_2d_tree(
+            &pre_sorted_x[..],
+            &pre_sorted_y[..],
+            orientation_even,
+        );
         KdTree(node.unwrap())
     }
 
-    fn construct_balanced_2d_tree(x: &[&(f32, f32)], y: &[&(f32, f32)], orientation: Orientation) -> Option<Box<Node>> {
+    fn construct_balanced_2d_tree(
+        x: &[&(f32, f32)],
+        y: &[&(f32, f32)],
+        orientation: Orientation,
+    ) -> Option<Box<Node>> {
         assert_eq!(x.len(), y.len());
         if x.len() == 0 {
             return None;
@@ -68,11 +77,21 @@ impl KdTree {
                     }
 
                     Some(Box::new(Node::Knot {
-                        key: Key { value: key.1, orientation: Orientation::Horizontal },
-                        left: Self::construct_balanced_2d_tree(&x_left[..], y_left, Orientation::Vertical),
-                        right: Self::construct_balanced_2d_tree(&x_right[..], y_right, Orientation::Vertical),
+                        key: Key {
+                            value: key.1,
+                            orientation: Orientation::Horizontal,
+                        },
+                        left: Self::construct_balanced_2d_tree(
+                            &x_left[..],
+                            y_left,
+                            Orientation::Vertical,
+                        ),
+                        right: Self::construct_balanced_2d_tree(
+                            &x_right[..],
+                            y_right,
+                            Orientation::Vertical,
+                        ),
                     }))
-
                 }
             }
             Orientation::Vertical => {
@@ -109,9 +128,20 @@ impl KdTree {
                     }
 
                     Some(Box::new(Node::Knot {
-                        key: Key { value: key.0, orientation: Orientation::Vertical },
-                        left: Self::construct_balanced_2d_tree(x_left, &y_left[..], Orientation::Horizontal),
-                        right: Self::construct_balanced_2d_tree(x_right, &y_right[..], Orientation::Horizontal),
+                        key: Key {
+                            value: key.0,
+                            orientation: Orientation::Vertical,
+                        },
+                        left: Self::construct_balanced_2d_tree(
+                            x_left,
+                            &y_left[..],
+                            Orientation::Horizontal,
+                        ),
+                        right: Self::construct_balanced_2d_tree(
+                            x_right,
+                            &y_right[..],
+                            Orientation::Horizontal,
+                        ),
                     }))
                 }
             }
@@ -150,12 +180,7 @@ mod tests {
     use super::*;
 
     fn _point_list() -> Vec<(f32, f32)> {
-        vec![
-            (20.0, 20.0),
-            (10.0, 15.0),
-            (15.0, 5.0),
-            (-20.1, 24.0),
-        ]
+        vec![(20.0, 20.0), (10.0, 15.0), (15.0, 5.0), (-20.1, 24.0)]
     }
 
     #[test]
