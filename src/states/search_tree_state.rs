@@ -76,7 +76,7 @@ impl Scene<SharedState, Event> for SearchTreeState {
 
         // draw tree partioning
         if let Some(tree) = &self.tree {
-            draw_node(ctx, &*tree.0, 0, ctx.conf.window_mode.width, 0, ctx.conf.window_mode.height);
+            draw_node(ctx, &*tree.0, 0, ctx.conf.window_mode.width, 0, ctx.conf.window_mode.height)?;
         }
 
         let text = graphics::Text::new(ctx, "press m to change mode", &font)?;
@@ -144,12 +144,7 @@ impl Scene<SharedState, Event> for SearchTreeState {
             }
         }
         if let Event::Mode = event {
-//            self.point_mode = !self.point_mode;
-
-            self.points.push(Point2::new(79.0, 427.0));
-            self.points.push(Point2::new(79.0, 419.0));
-            self.points.push(Point2::new(79.0, 129.0));
-            self.dirty_flag_tree = true;
+            self.point_mode = !self.point_mode;
         }
         if let Event::Esc = event {
             self.close = true;
@@ -174,10 +169,10 @@ fn draw_node(ctx: &mut ggez::Context, node: &kd_tree::Node, x_off: u32, x_width:
                 let key_with_offset = key.value as u32 - y_off;
 
                 if let Some(left) = left {
-                    draw_node(ctx, left, x_off, x_width, y_off, y_width-(y_width-key_with_offset) );
+                    draw_node(ctx, left, x_off, x_width, y_off, y_width-(y_width-key_with_offset))?;
                 }
                 if let Some(right) = right {
-                    draw_node(ctx, right, x_off, x_width, key.value as u32, y_width-key_with_offset);
+                    draw_node(ctx, right, x_off, x_width, key.value as u32, y_width-key_with_offset)?;
                 }
             } else {
                 let p1 = Point2::new(key.value, y_off as f32);
@@ -187,10 +182,10 @@ fn draw_node(ctx: &mut ggez::Context, node: &kd_tree::Node, x_off: u32, x_width:
                 let key_with_offset = key.value as u32 - x_off;
 
                 if let Some(left) = left {
-                    draw_node(ctx, left, x_off, x_width-(x_width-key_with_offset), y_off, y_width);
+                    draw_node(ctx, left, x_off, x_width-(x_width-key_with_offset), y_off, y_width)?;
                 }
                 if let Some(right) = right {
-                    draw_node(ctx, right, key.value as u32, x_width-key_with_offset, y_off, y_width);
+                    draw_node(ctx, right, key.value as u32, x_width-key_with_offset, y_off, y_width)?;
                 }
 
             }

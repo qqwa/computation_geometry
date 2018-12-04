@@ -17,7 +17,7 @@ mod kd_tree;
 mod math;
 mod states;
 
-fn everything_is_convex() -> Vec<Point2> {
+fn _everything_is_convex() -> Vec<Point2> {
     vec![
         Point2::new(200.0, 100.0),
         Point2::new(250.0, 100.0),
