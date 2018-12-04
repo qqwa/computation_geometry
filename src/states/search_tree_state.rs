@@ -49,7 +49,7 @@ impl Scene<SharedState, Event> for SearchTreeState {
             self.dirty_flag_tree = false;
             let points: Vec<(f32, f32)> = self.points.iter().map(|x| (x[0], x[1])).collect();
             self.tree = Some(kd_tree::KdTree::new(&points[..]));
-            println!("{:#?}", self.tree.take().unwrap());
+//            println!("{:#?}", self.tree.clone().take().unwrap());
         }
         // recalc search result
         // TODO...
@@ -73,6 +73,11 @@ impl Scene<SharedState, Event> for SearchTreeState {
         } else {
             "query mode"
         };
+
+        // draw tree partioning
+        if let Some(tree) = &self.tree {
+            draw_node(ctx, &*tree.0, 0, ctx.conf.window_mode.width, 0, ctx.conf.window_mode.height);
+        }
 
         let text = graphics::Text::new(ctx, "press m to change mode", &font)?;
         graphics::draw(ctx, &text, graphics::Point2::new(10.0, 10.0), 0.0)?;
@@ -139,7 +144,12 @@ impl Scene<SharedState, Event> for SearchTreeState {
             }
         }
         if let Event::Mode = event {
-            self.point_mode = !self.point_mode;
+//            self.point_mode = !self.point_mode;
+
+            self.points.push(Point2::new(79.0, 427.0));
+            self.points.push(Point2::new(79.0, 419.0));
+            self.points.push(Point2::new(79.0, 129.0));
+            self.dirty_flag_tree = true;
         }
         if let Event::Esc = event {
             self.close = true;
@@ -151,4 +161,42 @@ impl Scene<SharedState, Event> for SearchTreeState {
     fn draw_previous(&self) -> bool {
         false
     }
+}
+
+fn draw_node(ctx: &mut ggez::Context, node: &kd_tree::Node, x_off: u32, x_width: u32, y_off: u32, y_width: u32)  -> ggez::GameResult<()> {
+    match node {
+        kd_tree::Node::Knot { key, left, right } => {
+            if key.orientation == kd_tree::Orientation::Horizontal {
+                let p1 = Point2::new(x_off as f32, key.value);
+                let p2 = Point2::new((x_off+x_width) as f32, key.value);
+                graphics::line(ctx, &vec![p1, p2][..], 1.0)?;
+
+                let key_with_offset = key.value as u32 - y_off;
+
+                if let Some(left) = left {
+                    draw_node(ctx, left, x_off, x_width, y_off, y_width-(y_width-key_with_offset) );
+                }
+                if let Some(right) = right {
+                    draw_node(ctx, right, x_off, x_width, key.value as u32, y_width-key_with_offset);
+                }
+            } else {
+                let p1 = Point2::new(key.value, y_off as f32);
+                let p2 = Point2::new(key.value, (y_off+y_width) as f32);
+                graphics::line(ctx, &vec![p1, p2][..], 1.0)?;
+
+                let key_with_offset = key.value as u32 - x_off;
+
+                if let Some(left) = left {
+                    draw_node(ctx, left, x_off, x_width-(x_width-key_with_offset), y_off, y_width);
+                }
+                if let Some(right) = right {
+                    draw_node(ctx, right, key.value as u32, x_width-key_with_offset, y_off, y_width);
+                }
+
+            }
+        }
+        _ => {}
+    }
+
+    Ok(())
 }
