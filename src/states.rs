@@ -35,7 +35,7 @@ impl MainState {
 }
 
 impl event::EventHandler for MainState {
-    fn update(&mut self, ctx: &mut Context) -> GameResult<()> {
+    fn update(&mut self, _ctx: &mut Context) -> GameResult<()> {
         self.scenes.update();
         Ok(())
     }
@@ -53,7 +53,7 @@ impl event::EventHandler for MainState {
             self.scenes.input(event, true);
         }
     }
-    fn key_up_event(&mut self, _ctx: &mut Context, keycode: Keycode, keymod: Mod, repeat: bool) {
+    fn key_up_event(&mut self, _ctx: &mut Context, keycode: Keycode, _keymod: Mod, repeat: bool) {
         let event = if !repeat {
             match keycode {
                 Keycode::Up => Event::ArrowUp,

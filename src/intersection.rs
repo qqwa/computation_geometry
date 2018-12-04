@@ -117,7 +117,7 @@ pub fn iso_scan_line(lines: &[(Point2, Point2)]) -> (Vec<(Point2, Point2)>, Vec<
 
     while let Some(event) = events.pop() {
         match &event {
-            Event::Start { x, id } => {
+            Event::Start { id, .. } => {
                 let seg = Segment {
                     p1: lines[*id].0,
                     p2: lines[*id].1,

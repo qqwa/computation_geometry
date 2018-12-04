@@ -46,7 +46,7 @@ impl MenuState {
 }
 
 impl Scene<SharedState, Event> for MenuState {
-    fn update(&mut self, state: &mut SharedState) -> SceneSwitch<SharedState, Event> {
+    fn update(&mut self, _state: &mut SharedState) -> SceneSwitch<SharedState, Event> {
         if self.switch || self.quick_start {
             self.switch = false;
             self.quick_start = false;
@@ -70,7 +70,7 @@ impl Scene<SharedState, Event> for MenuState {
             SceneSwitch::None
         }
     }
-    fn draw(&mut self, state: &mut SharedState, ctx: &mut ggez::Context) -> ggez::GameResult<()> {
+    fn draw(&mut self, _state: &mut SharedState, ctx: &mut ggez::Context) -> ggez::GameResult<()> {
         graphics::clear(ctx);
 
         for (i, scene) in self.scenes.iter().enumerate() {
@@ -94,7 +94,7 @@ impl Scene<SharedState, Event> for MenuState {
         graphics::present(ctx);
         Ok(())
     }
-    fn input(&mut self, state: &mut SharedState, event: Event, started: bool) {
+    fn input(&mut self, _state: &mut SharedState, event: Event, _started: bool) {
         match event {
             Event::Return => self.switch = true,
             Event::ArrowUp => {

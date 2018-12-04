@@ -61,7 +61,7 @@ impl Scene<SharedState, Event> for SearchTreeState {
             SceneSwitch::None
         }
     }
-    fn draw(&mut self, state: &mut SharedState, ctx: &mut ggez::Context) -> ggez::GameResult<()> {
+    fn draw(&mut self, _state: &mut SharedState, ctx: &mut ggez::Context) -> ggez::GameResult<()> {
         graphics::clear(ctx);
 
         let font = graphics::Font::default_font().unwrap();
@@ -99,7 +99,7 @@ impl Scene<SharedState, Event> for SearchTreeState {
         graphics::present(ctx);
         Ok(())
     }
-    fn input(&mut self, state: &mut SharedState, event: Event, started: bool) {
+    fn input(&mut self, _state: &mut SharedState, event: Event, _started: bool) {
         if self.point_mode {
             if let Event::LeftMouseButton { x, y } = event {
                 let point = Point2::new(x as f32, y as f32);
@@ -124,8 +124,7 @@ impl Scene<SharedState, Event> for SearchTreeState {
                     self.query_started = true;
                 }
             }
-            if let Event::RightMouseButton { x, y } = event {
-                let point = Point2::new(x as f32, y as f32);
+            if let Event::RightMouseButton { .. } = event {
                 self.dirty_flag_search = true;
                 self.query = (None, None);
                 self.query_started = false;

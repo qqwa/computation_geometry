@@ -45,7 +45,7 @@ impl Scene<SharedState, Event> for PointState {
             SceneSwitch::None
         }
     }
-    fn draw(&mut self, state: &mut SharedState, ctx: &mut ggez::Context) -> ggez::GameResult<()> {
+    fn draw(&mut self, _state: &mut SharedState, ctx: &mut ggez::Context) -> ggez::GameResult<()> {
         graphics::clear(ctx);
         graphics::set_color(ctx, self.point_color)?;
         for point in &self.points {
@@ -58,7 +58,7 @@ impl Scene<SharedState, Event> for PointState {
         graphics::present(ctx);
         Ok(())
     }
-    fn input(&mut self, state: &mut SharedState, event: Event, started: bool) {
+    fn input(&mut self, _state: &mut SharedState, event: Event, _started: bool) {
         if let Event::LeftMouseButton { x, y } = event {
             let point = Point2::new(x as f32, y as f32);
             if !self.points.contains(&point) {

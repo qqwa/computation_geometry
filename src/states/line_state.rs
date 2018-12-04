@@ -50,7 +50,7 @@ impl Scene<SharedState, Event> for LineState {
             SceneSwitch::None
         }
     }
-    fn draw(&mut self, state: &mut SharedState, ctx: &mut ggez::Context) -> ggez::GameResult<()> {
+    fn draw(&mut self, _state: &mut SharedState, ctx: &mut ggez::Context) -> ggez::GameResult<()> {
         graphics::clear(ctx);
 
         // draw point of unfinished line
@@ -84,7 +84,7 @@ impl Scene<SharedState, Event> for LineState {
         graphics::present(ctx);
         Ok(())
     }
-    fn input(&mut self, state: &mut SharedState, event: Event, started: bool) {
+    fn input(&mut self, _state: &mut SharedState, event: Event, _started: bool) {
         if let Event::LeftMouseButton { x, y } = event {
             let point = Point2::new(x as f32, y as f32);
 
