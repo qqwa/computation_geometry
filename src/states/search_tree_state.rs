@@ -8,7 +8,7 @@ use super::*;
 #[derive(Clone)]
 pub struct SearchTreeState {
     points: Vec<Point2>,
-    query_points: Vec<Point2>,
+    query_points: Vec<(f32, f32)>,
     query: (Option<Point2>, Option<Point2>),
     point_color: graphics::Color,
     query_color: graphics::Color,
@@ -44,15 +44,32 @@ impl SearchTreeState {
 
 impl Scene<SharedState, Event> for SearchTreeState {
     fn update(&mut self, _state: &mut SharedState) -> SceneSwitch<SharedState, Event> {
+        let points = if self.dirty_flag_search || self.dirty_flag_tree {
+            self.points.iter().map(|x| (x[0], x[1])).collect()
+        } else {
+            Vec::new()
+        };
+
         // recalc tree
         if self.dirty_flag_tree {
             self.dirty_flag_tree = false;
-            let points: Vec<(f32, f32)> = self.points.iter().map(|x| (x[0], x[1])).collect();
+
             self.tree = Some(kd_tree::KdTree::new(&points[..]));
-            //            println!("{:#?}", self.tree.clone().take().unwrap());
         }
         // recalc search result
-        // TODO...
+        if self.dirty_flag_search {
+            self.dirty_flag_search = false;
+            if let (Some(t1), Some(t2)) = self.query {
+                let p1 = { (t1.x.min(t2.x), t1.y.min(t2.y)) };
+                let p2 = { (t1.x.max(t2.x), t1.y.max(t2.y)) };
+                if let Some(tree) = &self.tree {
+                    self.query_points = tree.range_query(p1, p2);
+                }
+            } else {
+                // clear queried points
+                self.query_points = Vec::new();
+            }
+        }
 
         if self.close {
             debug!("popped");
@@ -99,13 +116,14 @@ impl Scene<SharedState, Event> for SearchTreeState {
 
         graphics::set_color(ctx, self.query_color)?;
         for point in &self.query_points {
-            graphics::circle(ctx, DrawMode::Fill, point.clone(), 2.5, 0.15)?;
+            let point = Point2::new(point.0, point.1);
+            graphics::circle(ctx, DrawMode::Fill, point, 4.5, 0.15)?;
         }
 
         graphics::set_color(ctx, self.query_color)?;
         if let (Some(p1), Some(p2)) = self.query {
             let rect = graphics::Rect::new(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
-            graphics::rectangle(ctx, DrawMode::Line(1.0), rect)?;
+            graphics::rectangle(ctx, DrawMode::Line(2.0), rect)?;
         }
 
         graphics::present(ctx);
@@ -116,6 +134,7 @@ impl Scene<SharedState, Event> for SearchTreeState {
             if let Event::LeftMouseButton { x, y } = event {
                 let point = Point2::new(x as f32, y as f32);
                 self.dirty_flag_tree = true;
+                self.dirty_flag_search = true;
                 if !self.points.contains(&point) {
                     debug!("Created Point: {}", point);
                     self.points.push(point);
@@ -143,10 +162,9 @@ impl Scene<SharedState, Event> for SearchTreeState {
             }
             if let Event::MouseMove { x, y } = event {
                 let point = Point2::new(x as f32, y as f32);
-                self.dirty_flag_search = true;
                 if self.query_started {
+                    self.dirty_flag_search = true;
                     self.query.1 = Some(point);
-                    debug!("Mouse move: {} {}", x, y);
                 }
             }
         }

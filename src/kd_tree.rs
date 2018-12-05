@@ -147,6 +147,56 @@ impl KdTree {
             }
         }
     }
+
+    pub fn range_query(&self, min: (f32, f32), max: (f32, f32)) -> Vec<(f32, f32)> {
+        Self::query(&self.0, min, max)
+    }
+
+    fn query(node: &Node, min: (f32, f32), max: (f32, f32)) -> Vec<(f32, f32)> {
+        let mut v = Vec::new();
+
+        match node {
+            Node::Knot { key, left, right } => {
+                match key.orientation {
+                    Orientation::Vertical => {
+                        if min.0 <= key.value {
+                            //left is inside
+                            if let Some(left) = left {
+                                v.append(&mut Self::query(left, min, max));
+                            }
+                        }
+                        if key.value <= max.0 {
+                            //right is inside
+                            if let Some(right) = right {
+                                v.append(&mut Self::query(right, min, max));
+                            }
+                        }
+                    }
+                    Orientation::Horizontal => {
+                        if min.1 <= key.value {
+                            //left is inside
+                            if let Some(left) = left {
+                                v.append(&mut Self::query(left, min, max));
+                            }
+                        }
+                        if key.value <= max.1 {
+                            //right is inside
+                            if let Some(right) = right {
+                                v.append(&mut Self::query(right, min, max));
+                            }
+                        }
+                    }
+                }
+            }
+            Node::Leaf { value } => {
+                if min.0 <= value.0 && value.0 <= max.0 && min.1 <= value.1 && value.1 <= max.1 {
+                    v.push(*value);
+                }
+            }
+        };
+
+        v
+    }
 }
 
 #[derive(Clone, Debug, Copy, PartialEq)]
