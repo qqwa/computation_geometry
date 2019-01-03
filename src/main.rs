@@ -15,6 +15,7 @@ mod convex_hull;
 mod intersection;
 mod kd_tree;
 mod math;
+mod triangulation;
 mod states;
 
 fn _everything_is_convex() -> Vec<Point2> {

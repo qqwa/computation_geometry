@@ -7,6 +7,8 @@ use super::*;
 pub struct TriangulateState {
     points: Vec<Point2>,
     point_color: graphics::Color,
+    triangles: Vec<[Point2; 3]>,
+    triangle_color: graphics::Color,
     dirty_flag: bool,
     close: bool,
 }
@@ -14,9 +16,12 @@ pub struct TriangulateState {
 impl TriangulateState {
     pub fn new() -> Self {
         let point_color = graphics::Color::from_rgb(255, 255, 255);
+        let triangle_color = graphics::Color::from_rgb(255, 255, 0);
         TriangulateState {
             points: Vec::new(),
             point_color,
+            triangles: Vec::new(),
+            triangle_color,
             dirty_flag: false,
             close: false,
         }
@@ -27,7 +32,7 @@ impl Scene<SharedState, Event> for TriangulateState {
     fn update(&mut self, _state: &mut SharedState) -> SceneSwitch<SharedState, Event> {
         if self.dirty_flag {
             self.dirty_flag = false;
-            // TODO: call algorithm
+            self.triangles = crate::triangulation::delaunay(&self.points);
         }
         if self.close {
             SceneSwitch::Pop
@@ -40,6 +45,11 @@ impl Scene<SharedState, Event> for TriangulateState {
         graphics::set_color(ctx, self.point_color)?;
         for point in &self.points {
             graphics::circle(ctx, DrawMode::Fill, point.clone(), 2.5, 0.15)?;
+        }
+
+        graphics::set_color(ctx, self.triangle_color)?;
+        for triangle in &self.triangles {
+            graphics::polygon(ctx, DrawMode::Line(1.0), &triangle[..])?;
         }
 
         graphics::present(ctx);
