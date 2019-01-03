@@ -24,6 +24,7 @@ impl MenuState {
             "jarvi's march".to_string(),
             "iso scan line".to_string(),
             "2d-tree".to_string(),
+            "triangulate".to_string(),
         ];
         MenuState {
             switch: false,
@@ -64,6 +65,7 @@ impl Scene<SharedState, Event> for MenuState {
                 "2d-tree" => SceneSwitch::Push(box super::search_tree_state::SearchTreeState::new(
                     "2d-tree",
                 )),
+                "triangulate" => SceneSwitch::Push(box super::triangulate_state::TriangulateState::new()),
                 _ => SceneSwitch::None,
             }
         } else {

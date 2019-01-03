@@ -6,6 +6,7 @@ pub mod line_state;
 pub mod menu_state;
 pub mod point_state;
 pub mod search_tree_state;
+pub mod triangulate_state;
 
 pub struct SharedState();
 
