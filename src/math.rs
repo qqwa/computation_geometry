@@ -44,6 +44,26 @@ pub fn equal_points(a: &Point2, b: &Point2) -> bool {
     true
 }
 
+// point is in triangle if w1 and w2 are between 0 and 1
+pub fn point_in_triangle(p: Point2, triangle: &[Point2]) -> (f32, f32) {
+    if triangle.len() != 3 {
+        panic!("Triangle must have 3 points and not {}", triangle.len());
+    }
+    let a = triangle[0];
+    let b = triangle[1];
+    let c = triangle[2];
+
+    let s1 = c[1] - a[1];
+    let s2 = c[0] - a[0];
+    let s3 = b[1] - a[1];
+    let s4 = p[1] - a[1];
+
+    let w1 = (a[0] * s1 + s4 * s2 - p[0] * s1) / (s3 * s2 - (b[0] - a[0]) * s1);
+    let w2 = (s4 - w1 * s3) / s1;
+
+    (w1, w2)
+}
+
 #[cfg(test)]
 mod tests {
     // use ggez::graphics::Point2;
