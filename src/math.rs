@@ -45,13 +45,13 @@ pub fn equal_points(a: &Point2, b: &Point2) -> bool {
 }
 
 // point is in triangle if w1 and w2 are between 0 and 1
-pub fn point_in_triangle(p: Point2, triangle: &[Point2]) -> (f32, f32) {
+pub fn point_relative_to_triangle(p: Point2, triangle: &[Point2]) -> (f32, f32) {
     if triangle.len() != 3 {
         panic!("Triangle must have 3 points and not {}", triangle.len());
     }
-    let a = triangle[0];
+    let a = triangle[2];
     let b = triangle[1];
-    let c = triangle[2];
+    let c = triangle[0];
 
     let s1 = c[1] - a[1];
     let s2 = c[0] - a[0];
@@ -62,6 +62,42 @@ pub fn point_in_triangle(p: Point2, triangle: &[Point2]) -> (f32, f32) {
     let w2 = (s4 - w1 * s3) / s1;
 
     (w1, w2)
+}
+
+pub fn point_in_triangle(p: Point2, triangle: &[Point2]) -> bool {
+    let (w1, w2) = point_relative_to_triangle(p, triangle);
+    match (0.0 <= w1 && w1 <= 1.0, 0.0 <= w2 && w2 <= 1.0) {
+        (true, true) => true,
+        _ => false,
+    }
+}
+
+pub fn point_in_triangle_circle(p: Point2, triangle: &[Point2]) -> bool {
+    // calculate determinate of a matrix combining the triange points and p
+    // if the triangle is ccw the determinant has to be positive to lie inside the circle
+    let adx = triangle[0][0] - p[0];
+    let ady = triangle[0][1] - p[1];
+    let bdx = triangle[1][0] - p[0];
+    let bdy = triangle[1][1] - p[1];
+    let cdx = triangle[2][0] - p[0];
+    let cdy = triangle[2][1] - p[1];
+
+    let det = adx * bdy * (cdx*cdx + cdy*cdy)
+    + ady * (bdx*bdx + bdy*bdy) * cdx
+    + (adx*adx + ady*ady) * bdx * cdy
+    - (adx*adx + ady*ady) * bdy * cdx
+    - ady * bdx * (cdx*cdx + cdy*cdy)
+    - adx * (bdx*bdx + bdy*bdy) * cdy;
+
+    if !triangle_is_ccw(triangle) {
+        0.0 < det
+    } else {
+        det < 0.0
+    }
+}
+
+fn triangle_is_ccw(triangle: &[Point2]) -> bool {
+    !left_turn(triangle)
 }
 
 #[cfg(test)]

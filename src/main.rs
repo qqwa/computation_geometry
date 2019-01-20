@@ -1,5 +1,6 @@
 #![feature(box_syntax)]
 #![feature(vec_remove_item)]
+#![feature(drain_filter)]
 
 extern crate chrono;
 extern crate fern;
