@@ -17,12 +17,37 @@ impl TriangulateState {
     pub fn new() -> Self {
         let point_color = graphics::Color::from_rgb(255, 255, 255);
         let triangle_color = graphics::Color::from_rgb(255, 255, 0);
+        let mut points = Vec::new();
+        points.push(Point2::new(227.0, 250.0));
+        points.push(Point2::new(370.0, 163.0));
+        points.push(Point2::new(427.0, 362.0));
+        points.push(Point2::new(263.0, 403.0));
+        points.push(Point2::new(533.0, 254.0));
+        points.push(Point2::new(253.0, 162.0));
+        points.push(Point2::new(154.0, 356.0));
+        points.push(Point2::new(311.0, 463.0));
+        points.push(Point2::new(502.0, 450.0));
+        points.push(Point2::new(555.0, 454.0));
+        points.push(Point2::new(570.0, 476.0));
+        points.push(Point2::new(574.0, 500.0));
+        points.push(Point2::new(572.0, 527.0));
+        points.push(Point2::new(554.0, 552.0));
+        points.push(Point2::new(519.0, 565.0));
+        points.push(Point2::new(475.0, 576.0));
+        points.push(Point2::new(420.0, 573.0));
+        points.push(Point2::new(358.0, 565.0));
+        points.push(Point2::new(265.0, 558.0));
+        points.push(Point2::new(212.0, 544.0));
+        points.push(Point2::new(167.0, 522.0));
+        points.push(Point2::new(142.0, 489.0));
+        points.push(Point2::new(104.0, 458.0));
+        points.push(Point2::new( 70.0, 414.0));
         TriangulateState {
-            points: Vec::new(),
+            points,
             point_color,
             triangles: Vec::new(),
             triangle_color,
-            dirty_flag: false,
+            dirty_flag: true,
             close: false,
         }
     }

@@ -4,6 +4,7 @@ use rand::seq::SliceRandom;
 use crate::math;
 
 pub fn delaunay(points: &[Point2]) -> Vec<[Point2; 3]> {
+    // https://github.com/tynril/rtriangulate/blob/master/src/lib.rs
     if points.len() < 3 {
         return Vec::new()
     }
@@ -12,12 +13,21 @@ pub fn delaunay(points: &[Point2]) -> Vec<[Point2; 3]> {
     let mut rng = thread_rng();
     shuffeld.shuffle(&mut rng);
 
+    // let mut points = points.to_vec();
+    // points.sort_by(|a, b| {
+    //     a[0].partial_cmp(&b[0])
+    //         .unwrap()
+    //         .then_with(|| a[1].partial_cmp(&b[1]).unwrap())
+    // });
+
     let initial_triangle = initial_triangle(&points);
     let mut triangles = Vec::new();
     triangles.push(initial_triangle);
 
-    for p in points.iter() {
-        let triangle = triangles.iter().find(|&& x| math::point_in_triangle(*p, &x)).expect("Point was not inside any triangle, this can't happen");
+    // return triangles;
+
+    for (i, p) in points.iter().enumerate() {
+        // let triangle = triangles.iter().find(|&& x| math::point_in_triangle(*p, &x)).expect(&format!("Point({}) was not inside any triangle, this can't happen", i));
 
         // collect triangles to remove
         let violating_triangles: Vec<[Point2; 3]> = triangles.clone().into_iter().filter(|x| {
@@ -61,61 +71,64 @@ pub fn delaunay(points: &[Point2]) -> Vec<[Point2; 3]> {
 
     // for every point of bounding triangle
     for p in &[initial_triangle[0], initial_triangle[1], initial_triangle[2]] {
-        // remove every triangle that contains p
+        let mut flipped_edge = true;
+        // as long as we found one triangle pair where we needed to flip an edge we are trying again
+        'outer: while flipped_edge {
+            // get all triangles that contain p
+            let p_triangles: Vec<[Point2; 3]> = triangles.clone().into_iter().filter(|x| {
+                *p == x[0] || *p == x[1] || *p == x[2]
+            }).collect();
 
-        let removed_triangles: Vec<[Point2; 3]> = triangles.drain_filter(|x| {
-            x[0] == *p || x[1] == *p || x[2] == *p
-        }).collect();
+            for p_triangle in p_triangles.iter() {
+                // search triangle that shares edge with p_triangle
+                let copy = p_triangles.clone();
+                for triangle in copy.into_iter().filter(|x| *x != *p_triangle) {
+                    // unique point of p_triangle
+                    let l1 = p_triangle.iter().filter(|x| !triangle.contains(x)).next();
+                    // unique point of triangle
+                    let l2 = triangle.iter().filter(|x| !p_triangle.contains(x)).next();
+                    // point1 of shared edge = p
+                    let p1 = triangle.iter().filter(|x| *x==p).next();
+                    // point2 of shared edge
+                    let p2 = p_triangle.iter().filter(|x| triangle.contains(x) && *x != p).next();
 
-        for t1 in removed_triangles.iter() {
-            for t2 in removed_triangles.iter().filter(|x| *x != t1) {
-                // check if triangle share edge -> two points are the same
-                let mut same_points = 0;
-                if t1[0] == t2[0] || t1[0] == t2[1] || t1[0] == t2[2] {
-                    same_points += 1;
-                }
-                if t1[1] == t2[0] || t1[1] == t2[1] || t1[1] == t2[2] {
-                    same_points += 1;
-                }
-                if t1[2] == t2[0] || t1[2] == t2[1] || t1[2] == t2[2] {
-                    same_points += 1;
-                }
-
-                let intial_points = [initial_triangle[0], initial_triangle[1], initial_triangle[2]].iter().filter(|&p| {
-                    *p == t1[0] || *p == t1[1] || *p == t1[2] || *p == t2[0] || *p == t2[1] || *p == t2[2]
-                }).collect::<Vec<&Point2>>().len();
-
-                if same_points == 2 && intial_points == 1 {
-                    // check if we need to to flip edge
-                    let mut potential_triangle = Vec::new();
-                    if t1[0] != *p && !potential_triangle.contains(&t1[0]) {
-                        potential_triangle.push(t1[0]);
-                    }
-                    if t1[1] != *p && !potential_triangle.contains(&t1[1]) {
-                        potential_triangle.push(t1[1]);
-                    }
-                    if t1[2] != *p && !potential_triangle.contains(&t1[2]) {
-                        potential_triangle.push(t1[2]);
-                    }
-
-                    if t2[0] != *p && !potential_triangle.contains(&t2[0]) {
-                        potential_triangle.push(t2[0]);
-                    }
-                    if t2[1] != *p && !potential_triangle.contains(&t2[1]) {
-                        potential_triangle.push(t2[1]);
-                    }
-                    if t2[2] != *p && !potential_triangle.contains(&t2[2]) {
-                        potential_triangle.push(t2[2]);
-                    }
-
-                    if math::point_in_triangle_circle(*p, &potential_triangle[..]) {
-                        log::info!("Flip edge!");
-                        triangles.push([potential_triangle[0], potential_triangle[1], potential_triangle[2]])
+                    match (l1, l2, p1, p2) {
+                        (Some(l1), Some(l2), Some(p1), Some(p2)) => {
+                            let t1 = [*l1, *l2, *p2];
+                            let t2 = [*l1, *l2, *p1];
+                            // check delauney condition, flip edge if violated
+                            if math::point_in_triangle_circle(**&p1, &t1[..]) {
+                                triangles.remove_item(&triangle).expect("tried to remove triangle but didnt find one");
+                                triangles.remove_item(&p_triangle).expect("tried to remove p_triangle but didnt find one");
+                                triangles.push(t1);
+                                triangles.push(t2);
+                                // repeat from the beginning
+                                continue 'outer;
+                            }
+                        }
+                        // triangle doesn't share edge with p_triangle, check next one
+                        _ => {}
                     }
                 }
             }
+            flipped_edge = false;
         }
     }
+
+    // remove triangles that contain point of initial triangle
+    for p in &[initial_triangle[0], initial_triangle[1], initial_triangle[2]] {
+        let removed_triangles: Vec<[Point2; 3]> = triangles.drain_filter(|x| {
+            x[0] == *p || x[1] == *p || x[2] == *p
+        }).collect();
+    }
+
+    // remove all triangles that don't contain point of initial
+    // let it = initial_triangle;
+    // let removed_triangles: Vec<[Point2; 3]> = triangles.drain_filter(|x| {
+    //     !((x[0] == it[0] || x[1] == it[0] || x[2] == it[0]) 
+    //     || (x[0] == it[1] || x[1] == it[1] || x[2] == it[1]) 
+    //     || (x[0] == it[2] || x[1] == it[2] || x[2] == it[2])) 
+    // }).collect();
 
     triangles
 }
@@ -162,4 +175,36 @@ fn initial_triangle(points: &[Point2]) -> [Point2; 3] {
     let top_left = Point2::new(x_min, y_max+y_len);
 
     [bottem_left, bottem_right, top_left]
+
+
+
+    // let (min_point, max_point) = points.iter().fold(
+    //     (
+    //         Point2::new(std::f32::INFINITY, std::f32::INFINITY),
+    //         Point2::new(std::f32::NEG_INFINITY, std::f32::NEG_INFINITY),
+    //     ),
+    //     |acc, p| {
+    //         (
+    //             Point2::new(acc.0[0].min(p[0]), acc.0[1].min(p[1])),
+    //             Point2::new(acc.1[0].max(p[0]), acc.1[1].max(p[1])),
+    //         )
+    //     },
+    // );
+
+    // let half = 0.5;
+    // let two = 2.0;
+
+    // let delta_point =
+    //     Point2::new(max_point[0] - min_point[0], max_point[1] - min_point[1]);
+    // let delta_max = delta_point.x.max(delta_point.y);
+    // let mid_point = Point2::new(
+    //     (max_point[0] + min_point[0]) * half,
+    //     (max_point[1] + min_point[1]) * half,
+    // );
+
+    // let p1 = Point2::new(mid_point[0] - two * delta_max, mid_point[1] - delta_max);
+    // let p2 = Point2::new(mid_point[0], mid_point[1] + two * delta_max);
+    // let p3 = Point2::new(mid_point[0] + two * delta_max, mid_point.y - delta_max);
+
+    // [p1, p2, p3]
 }
