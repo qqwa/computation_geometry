@@ -53,8 +53,8 @@ fn main() {
     let c = conf::Conf::new();
     let ctx = &mut Context::load_from_conf("super_simple", "ggez", c).unwrap();
 
-    // let mut menu = box states::menu_state::MenuState::new();
-    let menu = box states::menu_state::MenuState::quick_start(4);
+    let mut menu = box states::menu_state::MenuState::new();
+    // let menu = box states::menu_state::MenuState::quick_start(4);
 
     let state = &mut states::MainState::new(ctx, menu);
     event::run(ctx, state).unwrap();
